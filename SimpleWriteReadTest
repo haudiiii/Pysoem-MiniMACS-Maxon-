@@ -1,0 +1,24 @@
+import pysoem
+
+master = pysoem.Master()
+
+master.open('\\Device\\NPF_{0FF2BD4E-371A-4BA3-8A04-D64EC42531A8}')
+print("**************Test connect with the MiniMAS**********************")
+if master.config_init() > 0:
+    print("Hello world")
+    device_foo = master.slaves[0]
+    print(device_foo.name)
+    print("**************Test to read the vendor id**************************")
+    vendor_id = int.from_bytes(device_foo.sdo_read(0x1018, 1), byteorder='little', signed=False)
+    print("The vendor id is:",vendor_id)
+    print("**************Test to transmit user parameter*********************")
+    #User parameter array0x2201=fixed and between 1-99 for the second param
+    #sent_aram has to be int (e.g. 33), float like 33.3333 doesen't work
+    sent_param=33
+    device_foo.sdo_write(0x2201, 1, (sent_param).to_bytes(4, byteorder='little', signed=False))
+    received_param = int.from_bytes(device_foo.sdo_read(0x2201, 82), byteorder='little', signed=False)
+    print("The sent parameter is:",sent_param,", the received parameter is:",received_param)
+else:
+    print('no device found')
+
+master.close()
